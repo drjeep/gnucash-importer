@@ -1,0 +1,25 @@
+{% extends "importer/base.html" %}
+
+{% block content %}
+
+{% if rows %}
+    <form action="" method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table>
+        {% for row in rows %}
+        <tr>
+            {% for col in row %}
+               <td>{{ col }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        {% for form in formset.forms %}
+            <td>{{ form.field }}</td>
+        {% endfor %}
+    </table>
+    <input type="submit" value="Next">
+    </form>
+{% endif %}
+
+{% endblock %}
