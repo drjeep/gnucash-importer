@@ -1,6 +1,7 @@
 import os
 import datetime
 from decimal import Decimal
+from django.conf import settings
 from gnucash import Session, GncNumeric
 from ..utils import gnc_numeric_from_decimal
 
@@ -15,7 +16,7 @@ try:
     invoice = book.InvoiceLookupByID("002310")
     customer = invoice.GetOwner()
     posted_acc = invoice.GetPostedAcc()
-    xfer_acc = root.lookup_by_name("Checking Account")
+    xfer_acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
     amount = gnc_numeric_from_decimal(Decimal("149.00"))
 
     customer.ApplyPayment(

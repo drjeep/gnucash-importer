@@ -1,4 +1,5 @@
 import os
+from django.conf import settings
 from gnucash import Session
 
 session = Session(
@@ -8,7 +9,7 @@ session = Session(
 try:
     book = session.book
     root = book.get_root_account()
-    bank = root.lookup_by_name("Checking Account")
+    bank = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
     for split in bank.GetSplitList():
         trans = split.parent
         ref = trans.GetNum()

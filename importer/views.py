@@ -66,9 +66,9 @@ def map_accounts(request):
     map = request.session.get("map", {})
     statement = request.session.get("statement", "bank")
     if statement == "bank":
-        bank_account = "Checking Account"
+        bank_account = settings.GNUCASH_BANK_ACCOUNT
     else:
-        bank_account = "Credit Card"
+        bank_account = settings.GNUCASH_CARD_ACCOUNT
 
     data = []
     for row in rows:
@@ -90,9 +90,9 @@ def map_accounts(request):
         session = Session(settings.GNUCASH_FILE)
         root = session.book.get_root_account()
         if statement == "bank":
-            bank = root.lookup_by_name("Checking Account")
+            bank = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
         else:
-            bank = root.lookup_by_name("Credit Card")
+            bank = root.lookup_by_name(settings.GNUCASH_CARD_ACCOUNT)
 
         check = []
         for split in bank.GetSplitList():

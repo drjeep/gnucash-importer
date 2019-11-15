@@ -1,6 +1,7 @@
 import csv
 from dateutil import parser
 from decimal import Decimal
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from gnucash import Session, GncNumeric
 from importer.utils import gnc_numeric_from_decimal
@@ -11,11 +12,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            s = Session("_docs/gnucash/wickedbox.gnc")
+            s = Session(settings.GNUCASH_FILE)
 
             book = s.book
             root = book.get_root_account()
-            bank = root.lookup_by_name("Checking Account")
+            bank = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
 
             # load payment numbers
             refs = set()
@@ -41,7 +42,7 @@ class Command(BaseCommand):
                 else:
                     customer = invoice.GetOwner()
                     posted_acc = invoice.GetPostedAcc()
-                    xfer_acc = root.lookup_by_name("Checking Account")
+                    xfer_acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
                     amount = gnc_numeric_from_decimal(Decimal(row["amount"]))
                     date = parser.parse(row["date"])
 

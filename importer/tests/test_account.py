@@ -1,4 +1,5 @@
 import os
+from django.conf import settings
 from ..utils import get_accounts, get_account_ancestors
 from gnucash import Session
 
@@ -11,7 +12,7 @@ try:
     root = book.get_root_account()
     print([acc.name for acc in get_accounts(root)])
 
-    acc = root.lookup_by_name("Checking Account")
+    acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
     print([acc.name for acc in get_account_ancestors(acc)])
 
 finally:

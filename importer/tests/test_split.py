@@ -2,6 +2,7 @@ import os
 from ..utils import create_split_transaction
 from datetime import date
 from decimal import Decimal
+from django.conf import settings
 from gnucash import Session
 
 session = Session(
@@ -11,7 +12,7 @@ session = Session(
 try:
     create_split_transaction(
         session.book,
-        "Checking Account",
+        settings.GNUCASH_BANK_ACCOUNT,
         "Internet",
         date.today(),
         "ADSL",
@@ -19,7 +20,7 @@ try:
     )
     create_split_transaction(
         session.book,
-        "Checking Account",
+        settings.GNUCASH_BANK_ACCOUNT,
         "Internet",
         date.today(),
         "ADSL (no VAT)",

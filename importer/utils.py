@@ -1,6 +1,7 @@
 import logging
 import re
 from decimal import Decimal
+from django.conf import settings
 from gnucash import Account, GncNumeric, Transaction, Split
 
 log = logging.getLogger(__name__)
@@ -63,12 +64,12 @@ def create_split_transaction(
     """
     root = book.get_root_account()
     comm_table = book.get_table()
-    zar = comm_table.lookup("CURRENCY", "ZAR")
+    currency = comm_table.lookup("CURRENCY", settings.GNUCASH_CURRENCY)
 
     bank_acc = root.lookup_by_name(bank_acc_name)
     exp_acc = root.lookup_by_name(exp_acc_name)
     if vat_incl:
-        vat_acc = root.lookup_by_name("VAT Claimable")
+        vat_acc = root.lookup_by_name(settings.GNUCASH_VAT_ACCOUNT)
 
     trans1 = Transaction(book)
     trans1.BeginEdit()
@@ -76,15 +77,15 @@ def create_split_transaction(
     num1 = gnc_numeric_from_decimal(amount)  # total
     if vat_incl:
         num2 = gnc_numeric_from_decimal(
-            (amount / Decimal("1.14")).quantize(Decimal("0.01"))
+            (amount / Decimal(settings.GNUCASH_VAT_RATE)).quantize(Decimal("0.01"))
         )  # subtotal
         num3 = gnc_numeric_from_decimal(
-            amount - (amount / Decimal("1.14")).quantize(Decimal("0.01"))
+            amount - (amount / Decimal(settings.GNUCASH_VAT_RATE)).quantize(Decimal("0.01"))
         )  # vat
     else:
         num2 = num1  # total
 
-    if bank_acc_name == "Credit Card":
+    if bank_acc_name == settings.GNUCASH_CARD_ACCOUNT:
         num1 = num1.neg()
         num2 = num2.neg()
         try:
@@ -108,7 +109,7 @@ def create_split_transaction(
     split3.SetParent(trans1)
     split3.SetValue(num1)
 
-    trans1.SetCurrency(zar)
+    trans1.SetCurrency(currency)
     trans1.SetDate(trans_date.day, trans_date.month, trans_date.year)
     trans1.SetDescription(description)
 

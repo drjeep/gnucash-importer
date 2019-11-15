@@ -133,3 +133,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 INTERNAL_IPS = ['127.0.0.1']
 
 GNUCASH_FILE = os.getenv('GNUCASH_FILE')
+GNUCASH_CURRENCY = os.getenv('GNUCASH_CURRENCY', 'ZAR')
+GNUCASH_BANK_ACCOUNT = os.getenv('GNUCASH_BANK_ACCOUNT', 'Checking Account')
+GNUCASH_CARD_ACCOUNT = os.getenv('GNUCASH_CARD_ACCOUNT', 'Credit Card')
+GNUCASH_VAT_ACCOUNT = os.getenv('GNUCASH_VAT_ACCOUNT', 'VAT Claimable')
+GNUCASH_VAT_RATE = os.getenv('GNUCASH_VAT_RATE', '1.15')  # @todo: percentage
