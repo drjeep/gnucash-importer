@@ -3,7 +3,8 @@ from django import forms
 from django.conf import settings
 from django.core.cache import cache
 from gnucash import Session
-from .utils import get_accounts
+from .models import AccountMap
+from .queries import get_accounts
 
 FIELD_CHOICES = (
     ("", "---------"),
@@ -55,3 +56,11 @@ class AccountForm(forms.Form):
     date = PaymentDateField(widget=forms.HiddenInput)
     description = forms.CharField(widget=forms.HiddenInput)
     vat_incl = forms.BooleanField(required=False)
+
+
+class AccountMapForm(forms.ModelForm):
+    account = forms.ChoiceField(choices=account_choices())
+
+    class Meta:
+        model = AccountMap
+        fields = ('match', 'account')

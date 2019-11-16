@@ -10,8 +10,9 @@ from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from .commands import create_split_transaction
 from .forms import UploadForm, FieldForm, AccountForm
-from .utils import create_split_transaction, match_account
+from .queries import match_account
 
 log = logging.getLogger(__name__)
 
@@ -50,8 +51,12 @@ def map_fields(request):
                 field = form.cleaned_data.get("field")
                 if field:
                     map[i] = field
-            request.session["map"] = map
 
+            if not all(['account' in map.values(), 'amount' in map.values(), 'date' in map.values()]):
+                messages.error(request, 'Please select account, amount and date fields')
+                return HttpResponseRedirect(reverse("gnucash-map-fields"))
+
+            request.session["map"] = map
             return HttpResponseRedirect(reverse("gnucash-map-accounts"))
     else:
         formset = FieldFormSet()
@@ -80,7 +85,6 @@ def map_accounts(request):
             new_row["amount"].startswith("-") or "VIRTUALSTOCK" in new_row["account"]
         ):
             data.append(new_row)
-    #    log.debug(data)
 
     AccountFormSet = formset_factory(AccountForm, extra=0)
 
@@ -103,14 +107,12 @@ def map_accounts(request):
                 amt = -amt
             if dte.year > 2011:
                 check.append([dte, amt])
-        log.debug(check)
 
         try:
             ok = dup = 0
             for form in formset.forms:
                 if form.is_valid():
                     clean = form.cleaned_data
-                    log.debug(clean)
                     if [clean["date"], clean["amount"]] not in check:
                         create_split_transaction(
                             session.book,
@@ -149,9 +151,7 @@ def map_accounts(request):
     else:
         initial = []
         for row in data:
-            log.debug(row)
             account, vat_incl = match_account(row.get("account"), row.get("amount", 0))
-            #            log.debug([account, vat_incl])
             initial.append(
                 {
                     "account": account,

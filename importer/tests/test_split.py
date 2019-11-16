@@ -1,5 +1,5 @@
 import os
-from ..utils import create_split_transaction
+from ..commands import create_split_transaction
 from datetime import date
 from decimal import Decimal
 from django.conf import settings

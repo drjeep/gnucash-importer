@@ -1,6 +1,6 @@
 import os
 from django.conf import settings
-from ..utils import get_accounts, get_account_ancestors
+from ..queries import get_accounts, get_account_ancestors
 from gnucash import Session
 
 session = Session(
