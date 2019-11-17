@@ -63,4 +63,4 @@ class AccountMapForm(forms.ModelForm):
 
     class Meta:
         model = AccountMap
-        fields = ('match', 'account')
+        fields = ("match", "account", "vat_inclusive")

@@ -2,7 +2,6 @@ import csv
 import logging
 from io import TextIOWrapper
 from datetime import datetime
-from decimal import Decimal
 from gnucash import Session
 from django.conf import settings
 from django.contrib import messages
@@ -13,6 +12,7 @@ from django.shortcuts import render
 from .commands import create_split_transaction
 from .forms import UploadForm, FieldForm, AccountForm
 from .queries import match_account
+from .utils import gnc_numeric_to_decimal
 
 log = logging.getLogger(__name__)
 
@@ -52,8 +52,14 @@ def map_fields(request):
                 if field:
                     map[i] = field
 
-            if not all(['account' in map.values(), 'amount' in map.values(), 'date' in map.values()]):
-                messages.error(request, 'Please select account, amount and date fields')
+            if not all(
+                [
+                    "account" in map.values(),
+                    "amount" in map.values(),
+                    "date" in map.values(),
+                ]
+            ):
+                messages.error(request, "Please select account, amount and date fields")
                 return HttpResponseRedirect(reverse("gnucash-map-fields"))
 
             request.session["map"] = map
@@ -101,8 +107,11 @@ def map_accounts(request):
         check = []
         for split in bank.GetSplitList():
             trans = split.parent
-            dte = datetime.fromtimestamp(trans.GetDate())
-            amt = Decimal(str(split.GetAmount()))
+            try:
+                dte = datetime.fromtimestamp(trans.GetDate())
+            except TypeError:
+                dte = trans.GetDate()
+            amt = gnc_numeric_to_decimal(split.GetAmount())
             if statement == "card":
                 amt = -amt
             if dte.year > 2011:
@@ -147,7 +156,7 @@ def map_accounts(request):
         finally:
             session.end()
 
-    #        return HttpResponseRedirect(reverse('gnucash-finish'))
+        return HttpResponseRedirect(reverse('gnucash-finish'))
     else:
         initial = []
         for row in data:
@@ -178,4 +187,4 @@ def finish(request):
     del request.session["rows"]
     del request.session["map"]
 
-    return render(request, "gnucash/finish.html")
+    return render(request, "importer/finish.html")

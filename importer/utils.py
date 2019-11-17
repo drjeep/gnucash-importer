@@ -1,6 +1,7 @@
 import logging
 from decimal import Decimal
 from gnucash import GncNumeric
+from math import log10
 
 log = logging.getLogger(__name__)
 
@@ -35,3 +36,22 @@ def gnc_numeric_from_decimal(decimal_value):
         denominator = 1
 
     return GncNumeric(numerator, denominator)
+
+
+def gnc_numeric_to_decimal(numeric):
+    negative = numeric.negative_p()
+    if negative:
+        sign = 1
+    else:
+        sign = 0
+    copy = GncNumeric(numeric.num(), numeric.denom())
+    result = copy.to_decimal(None)
+    if not result:
+        raise Exception(
+            "gnc numeric value %s can't be converted to Decimal" % copy.to_string()
+        )
+    digit_tuple = tuple(int(char) for char in str(copy.num()) if char != "-")
+    denominator = copy.denom()
+    exponent = int(log10(denominator))
+    assert (10 ** exponent) == denominator
+    return Decimal((sign, digit_tuple, -exponent))

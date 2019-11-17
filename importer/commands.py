@@ -31,7 +31,8 @@ def create_split_transaction(
             (amount / Decimal(settings.GNUCASH_VAT_RATE)).quantize(Decimal("0.01"))
         )  # subtotal
         num3 = gnc_numeric_from_decimal(
-            amount - (amount / Decimal(settings.GNUCASH_VAT_RATE)).quantize(Decimal("0.01"))
+            amount
+            - (amount / Decimal(settings.GNUCASH_VAT_RATE)).quantize(Decimal("0.01"))
         )  # vat
     else:
         num2 = num1  # total

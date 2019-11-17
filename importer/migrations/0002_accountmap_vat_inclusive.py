@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('importer', '0001_initial'),
-    ]
+    dependencies = [("importer", "0001_initial")]
 
     operations = [
         migrations.AddField(
-            model_name='accountmap',
-            name='vat_inclusive',
-            field=models.BooleanField(default=True, verbose_name='VAT inclusive'),
-        ),
+            model_name="accountmap",
+            name="vat_inclusive",
+            field=models.BooleanField(default=True, verbose_name="VAT inclusive"),
+        )
     ]

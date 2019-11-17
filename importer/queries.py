@@ -24,7 +24,7 @@ def get_account_ancestors(account, account_list=[]):
 
 
 def get_account_maps():
-    return AccountMap.objects.values_list('match', 'account', 'vat_inclusive')
+    return AccountMap.objects.values_list("match", "account", "vat_inclusive")
 
 
 def match_account(value, amount=0):
