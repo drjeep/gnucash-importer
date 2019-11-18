@@ -2,7 +2,7 @@ import logging
 from decimal import Decimal
 from django.conf import settings
 from gnucash import Transaction, Split, GncNumeric
-from .queries import get_invoice_numbers
+from .queries import get_payment_refs
 from .convert import gnc_numeric_from_decimal
 
 log = logging.getLogger(__name__)
@@ -75,7 +75,7 @@ def pay_invoice(book, number, amount, date):
     if not invoice:
         raise Exception("Could not find invoice %s... aborting" % number)
 
-    if number in get_invoice_numbers(book):
+    if number in get_payment_refs(book):
         print("Payment %s already exists... skipping" % number)
     else:
         xfer_acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)

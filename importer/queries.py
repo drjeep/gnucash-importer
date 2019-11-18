@@ -27,7 +27,7 @@ def get_account_ancestors(account, account_list=[]):
 
 @cache_memoize(60)
 def get_account_maps():
-    return AccountMap.objects.values_list("match", "account", "vat_inclusive")
+    return list(AccountMap.objects.values_list("match", "account", "vat_inclusive"))
 
 
 def match_account(value, amount=0):
@@ -45,7 +45,7 @@ def match_account(value, amount=0):
 
 
 @cache_memoize(60)
-def get_invoice_numbers(book):
+def get_payment_refs(book):
     refs = set()
     root = book.get_root_account()
     bank = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
