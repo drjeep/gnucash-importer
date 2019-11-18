@@ -78,20 +78,15 @@ def pay_invoice(book, number, amount, date):
     if number in get_invoice_numbers(book):
         print("Payment %s already exists... skipping" % number)
     else:
-        customer = invoice.GetOwner()
-        posted_acc = invoice.GetPostedAcc()
         xfer_acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
         amount = gnc_numeric_from_decimal(amount)
 
-        customer.ApplyPayment(
+        invoice.ApplyPayment(
             None,
-            None,
-            posted_acc,
             xfer_acc,
             amount,
             GncNumeric(1),
             date,
             "",
             number,
-            True,
         )
