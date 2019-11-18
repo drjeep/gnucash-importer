@@ -156,7 +156,7 @@ def map_accounts(request):
         finally:
             session.end()
 
-        return HttpResponseRedirect(reverse('gnucash-finish'))
+        return HttpResponseRedirect(reverse("gnucash-finish"))
     else:
         initial = []
         for row in data:

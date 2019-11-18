@@ -1,10 +1,13 @@
 import csv
+import logging
 from dateutil import parser
 from decimal import Decimal
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from gnucash import Session, GncNumeric
-from importer.utils import gnc_numeric_from_decimal
+from gnucash import Session
+from importer.commands import pay_invoice
+
+log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -13,56 +16,16 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             s = Session(settings.GNUCASH_FILE)
-
             book = s.book
-            root = book.get_root_account()
-            bank = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
-
-            # load payment numbers
-            refs = set()
-            for split in bank.GetSplitList():
-                trans = split.parent
-                ref = trans.GetNum()
-                if ref:
-                    refs.add(ref)
-
-            f = open(args[0], "r")
-            reader = csv.DictReader(f)
-
-            for row in reader:
-                invoice = book.InvoiceLookupByID(row["invoice"])
-                if not invoice:
-                    raise Exception(
-                        "Could not find invoice %s... aborting" % row["invoice"]
-                    )
-
-                number = row["number"]
-                if number in refs:
-                    print("Payment %s already exists... skipping" % number)
-                else:
-                    customer = invoice.GetOwner()
-                    posted_acc = invoice.GetPostedAcc()
-                    xfer_acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
-                    amount = gnc_numeric_from_decimal(Decimal(row["amount"]))
+            with open(args[0], "r") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    number = row["invoice"]
+                    amount = Decimal(row["amount"])
                     date = parser.parse(row["date"])
-
-                    customer.ApplyPayment(
-                        None,
-                        None,
-                        posted_acc,
-                        xfer_acc,
-                        amount,
-                        GncNumeric(1),
-                        date,
-                        "",
-                        number,
-                        True,
-                    )
+                    pay_invoice(book, number, amount, date)
 
             s.save()
-
-        except Exception:
-            raise
 
         finally:
             s.end()

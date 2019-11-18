@@ -1,7 +1,7 @@
+from cache_memoize import cache_memoize
 from dateutil import parser
 from django import forms
 from django.conf import settings
-from django.core.cache import cache
 from gnucash import Session
 from .models import AccountMap
 from .queries import get_accounts
@@ -16,19 +16,14 @@ FIELD_CHOICES = (
 STATEMENT_CHOICES = (("bank", "Bank"), ("card", "Credit Card"))
 
 
+@cache_memoize(60)
 def account_choices():
-    if "account_choices" in cache:
-        choices = cache.get("account_choices")
-    else:
-        choices = [("", "---------")]
-        session = Session(settings.GNUCASH_FILE)
-        root = session.book.get_root_account()
-        for ac in get_accounts(root):
-            choices.append((ac.name, ac.name))
-        session.end()
-        session.destroy()
-
-        cache.set("account_choices", choices, 30)
+    choices = [("", "---------")]
+    session = Session(settings.GNUCASH_FILE)
+    root = session.book.get_root_account()
+    for ac in get_accounts(root):
+        choices.append((ac.name, ac.name))
+    session.end()
 
     return choices
 

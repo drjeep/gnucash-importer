@@ -1,7 +1,8 @@
 import logging
 from decimal import Decimal
 from django.conf import settings
-from gnucash import Transaction, Split
+from gnucash import Transaction, Split, GncNumeric
+from .queries import get_invoice_numbers
 from .utils import gnc_numeric_from_decimal
 
 log = logging.getLogger(__name__)
@@ -66,3 +67,31 @@ def create_split_transaction(
     trans1.SetDescription(description)
 
     trans1.CommitEdit()
+
+
+def pay_invoice(book, number, amount, date):
+    root = book.get_root_account()
+    invoice = book.InvoiceLookupByID(number)
+    if not invoice:
+        raise Exception("Could not find invoice %s... aborting" % number)
+
+    if number in get_invoice_numbers(book):
+        print("Payment %s already exists... skipping" % number)
+    else:
+        customer = invoice.GetOwner()
+        posted_acc = invoice.GetPostedAcc()
+        xfer_acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
+        amount = gnc_numeric_from_decimal(amount)
+
+        customer.ApplyPayment(
+            None,
+            None,
+            posted_acc,
+            xfer_acc,
+            amount,
+            GncNumeric(1),
+            date,
+            "",
+            number,
+            True,
+        )
