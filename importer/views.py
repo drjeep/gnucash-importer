@@ -12,7 +12,7 @@ from django.shortcuts import render
 from .commands import create_split_transaction
 from .forms import UploadForm, FieldForm, AccountForm
 from .queries import match_account
-from .utils import gnc_numeric_to_decimal
+from .convert import gnc_numeric_to_decimal
 
 log = logging.getLogger(__name__)
 

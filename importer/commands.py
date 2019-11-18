@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.conf import settings
 from gnucash import Transaction, Split, GncNumeric
 from .queries import get_invoice_numbers
-from .utils import gnc_numeric_from_decimal
+from .convert import gnc_numeric_from_decimal
 
 log = logging.getLogger(__name__)
 
