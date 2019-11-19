@@ -9,10 +9,10 @@ from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from .commands import create_split_transaction
-from .forms import UploadForm, FieldForm, AccountForm
-from .queries import match_account
-from .convert import gnc_numeric_to_decimal
+from importer.commands import create_split_transaction
+from importer.forms import UploadForm, FieldForm, AccountForm
+from importer.queries import match_account
+from importer.convert import gnc_numeric_to_decimal
 
 log = logging.getLogger(__name__)
 

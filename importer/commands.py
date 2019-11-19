@@ -81,12 +81,4 @@ def pay_invoice(book, number, amount, date):
         xfer_acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
         amount = gnc_numeric_from_decimal(amount)
 
-        invoice.ApplyPayment(
-            None,
-            xfer_acc,
-            amount,
-            GncNumeric(1),
-            date,
-            "",
-            number,
-        )
+        invoice.ApplyPayment(None, xfer_acc, amount, GncNumeric(1), date, "", number)

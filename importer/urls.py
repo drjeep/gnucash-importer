@@ -1,9 +1,9 @@
 from django.conf.urls import url
-from . import views
+from .views import income, expenses
 
 urlpatterns = [
-    url(r"^$", views.upload, {}, "gnucash-import"),
-    url(r"^fields/$", views.map_fields, {}, "gnucash-map-fields"),
-    url(r"^accounts/$", views.map_accounts, {}, "gnucash-map-accounts"),
-    url(r"^finish/$", views.finish, {}, "gnucash-finish"),
+    url(r"^$", expenses.upload, {}, "gnucash-import"),
+    url(r"^fields/$", expenses.map_fields, {}, "gnucash-map-fields"),
+    url(r"^accounts/$", expenses.map_accounts, {}, "gnucash-map-accounts"),
+    url(r"^finish/$", expenses.finish, {}, "gnucash-finish"),
 ]
