@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.test import TestCase
 from gnucash import Session
+from ..exceptions import PaymentExists
 from .. import commands
 
 
@@ -40,3 +41,18 @@ class TestCommands(TestCase):
         commands.pay_invoice(
             self.session.book, "00002", Decimal("999.99"), date.today()
         )
+
+    def test_pay_invoice_exists(self):
+        self.assertRaises(
+            PaymentExists,
+            commands.pay_invoice,
+            self.session.book,
+            "00001",
+            Decimal("9999.99"),
+            date.today(),
+        )
+
+    # def test_apply_payment(self):
+    #     commands.apply_payment(
+    #         self.session.book, "00001", Decimal("999.99"), date.today()
+    #     )

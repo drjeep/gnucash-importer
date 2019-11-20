@@ -138,3 +138,4 @@ GNUCASH_BANK_ACCOUNT = os.getenv('GNUCASH_BANK_ACCOUNT', 'Checking Account')
 GNUCASH_CARD_ACCOUNT = os.getenv('GNUCASH_CARD_ACCOUNT', 'Credit Card')
 GNUCASH_VAT_ACCOUNT = os.getenv('GNUCASH_VAT_ACCOUNT', 'VAT Claimable')
 GNUCASH_VAT_RATE = os.getenv('GNUCASH_VAT_RATE', '1.15')  # @todo: percentage
+GNUCASH_ACCOUNTS_RECEIVABLE = os.getenv('GNUCASH_ACCOUNTS_RECEIVABLE', 'Accounts Receivable')

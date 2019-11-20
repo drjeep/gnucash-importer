@@ -27,8 +27,7 @@ STATEMENT_CHOICES = (("bank", "Bank"), ("card", "Credit Card"))
 def account_choices():
     choices = [("", "---------")]
     session = Session(settings.GNUCASH_FILE)
-    root = session.book.get_root_account()
-    for ac in queries.get_accounts(root):
+    for ac in queries.get_accounts(session.book.get_root_account()):
         choices.append((ac.name, ac.name))
     session.end()
 

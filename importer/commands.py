@@ -2,8 +2,9 @@ import logging
 from decimal import Decimal
 from django.conf import settings
 from gnucash import Transaction, Split, GncNumeric
-from .queries import get_payment_refs
 from .convert import gnc_numeric_from_decimal
+from .exceptions import CustomerNotFound, InvoiceNotFound, PaymentExists
+from . import queries
 
 log = logging.getLogger(__name__)
 
@@ -69,16 +70,33 @@ def create_split_transaction(
     trans1.CommitEdit()
 
 
-def pay_invoice(book, number, amount, date):
-    root = book.get_root_account()
-    invoice = book.InvoiceLookupByID(number)
+def pay_invoice(book, invoice_id, amount, date):
+    invoice = book.InvoiceLookupByID(invoice_id)
     if not invoice:
-        raise Exception("Could not find invoice %s... aborting" % number)
+        raise InvoiceNotFound("Could not find invoice %s" % invoice_id)
 
-    if number in get_payment_refs(book):
-        print("Payment %s already exists... skipping" % number)
-    else:
-        xfer_acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
-        amount = gnc_numeric_from_decimal(amount)
+    if invoice_id in queries.get_payment_refs(book):
+        raise PaymentExists("Payment %s already exists" % invoice_id)
 
-        invoice.ApplyPayment(None, xfer_acc, amount, GncNumeric(1), date, "", number)
+    bank = queries.get_bank_account(book)
+    amount = gnc_numeric_from_decimal(amount)
+
+    invoice.ApplyPayment(None, bank, amount, GncNumeric(1), date, "", invoice_id)
+
+
+def apply_payment(book, customer_id, amount, date):
+    customer = book.CustomerLookupByID(customer_id)
+    if not customer:
+        raise CustomerNotFound("Could not find customer %s" % customer_id)
+
+    posted_acc = queries.get_accounts_receivable(book)
+    xfer_acc = queries.get_bank_account(book)
+
+    check = queries.get_duplicate_check_data(xfer_acc)
+    if [date, amount] in check:
+        raise PaymentExists("Payment %s already exists" % customer_id)
+
+    amount = gnc_numeric_from_decimal(amount)
+    customer.ApplyPayment(
+        None, None, posted_acc, xfer_acc, amount, GncNumeric(1), date, "", ""
+    )

@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from gnucash import Session
 from importer.commands import pay_invoice
+from importer.exceptions import PaymentExists
 
 log = logging.getLogger(__name__)
 
@@ -23,9 +24,10 @@ class Command(BaseCommand):
                     number = row["invoice"]
                     amount = Decimal(row["amount"])
                     date = parser.parse(row["date"])
-                    pay_invoice(book, number, amount, date)
-
+                    try:
+                        pay_invoice(book, number, amount, date)
+                    except PaymentExists as e:
+                        print("%s... skipping" % e)
             s.save()
-
         finally:
             s.end()

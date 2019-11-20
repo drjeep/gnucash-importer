@@ -8,9 +8,8 @@ from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from importer.commands import create_split_transaction
 from importer.forms import IncomeUploadForm, IncomeFieldForm, CustomerForm
-from importer import queries
+from importer import commands, queries
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ def upload(request):
     else:
         form = IncomeUploadForm()
 
-    return render(request, "importer/income/upload.html", {"form": form})
+    return render(request, "importer/upload.html", {"form": form})
 
 
 def map_fields(request):
@@ -59,40 +58,37 @@ def map_fields(request):
                 messages.error(
                     request, "Please select customer, amount and date fields"
                 )
-                return HttpResponseRedirect(reverse("gnucash-map-fields"))
+                return HttpResponseRedirect(reverse("income-map-fields"))
 
             request.session["map"] = map
-            return HttpResponseRedirect(reverse("gnucash-map-accounts"))
+            return HttpResponseRedirect(reverse("income-map-customers"))
     else:
         formset = IncomeFieldFormSet()
 
     return render(
-        request,
-        "importer/income/map-fields.html",
-        {"formset": formset, "rows": rows[:10]},
+        request, "importer/map-fields.html", {"formset": formset, "rows": rows[:10]},
     )
 
 
 def map_customers(request):
     rows = request.session.get("rows", [])
     map = request.session.get("map", {})
-    bank_account = settings.GNUCASH_BANK_ACCOUNT
 
     data = []
     for row in rows:
         new_row = {}
         for index, field in map.items():
             new_row[field] = row[int(index)]
+        if not new_row["amount"].startswith("-"):
             data.append(new_row)
 
     CustomerFormSet = formset_factory(CustomerForm, extra=0)
 
+    session = Session(settings.GNUCASH_FILE)
+    bank = queries.get_bank_account(session.book)
+
     if request.method == "POST":
         formset = CustomerFormSet(request.POST)
-
-        session = Session(settings.GNUCASH_FILE)
-        root = session.book.get_root_account()
-        bank = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
 
         check = queries.get_duplicate_check_data(bank)
 
@@ -102,14 +98,8 @@ def map_customers(request):
                 if form.is_valid():
                     clean = form.cleaned_data
                     if [clean["date"], clean["amount"]] not in check:
-                        create_split_transaction(
-                            session.book,
-                            bank_account,
-                            str(clean["account"]),
-                            clean["date"],
-                            str(clean["description"]),
-                            clean["amount"],
-                            vat_incl=clean["vat_incl"],
+                        commands.apply_payment(
+                            clean["customer"], clean["amount"], clean["date"]
                         )
                         ok += 1
                     else:
@@ -139,23 +129,20 @@ def map_customers(request):
     else:
         initial = []
         for row in data:
-            account, vat_incl = queries.match_account(
-                row.get("account"), row.get("amount", 0)
-            )
+            customer = queries.match_customer(session.book, row.get("customer"))
             initial.append(
                 {
-                    "account": account,
+                    "customer": customer,
                     "amount": row.get("amount"),
                     "date": row.get("date"),
                     "description": row.get("account"),
-                    "vat_incl": vat_incl,
                 }
             )
         formset = CustomerFormSet(initial=initial)
 
     return render(
         request,
-        "importer/income/map-customers.html",
+        "importer/map-customers.html",
         {
             "formset": formset,
             "rows": zip(data, formset.forms),
@@ -168,4 +155,4 @@ def finish(request):
     del request.session["rows"]
     del request.session["map"]
 
-    return render(request, "importer/income/finish.html")
+    return render(request, "importer/finish.html")

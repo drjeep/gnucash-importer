@@ -1,0 +1,38 @@
+{% extends "importer/base.html" %}
+
+{% block content %}
+
+<p><em>{{ gnucash }}</em></p>
+
+{% if rows %}
+    <form action="" method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    <table>
+        {% for row, form in rows %}
+        {% if forloop.first %}
+        <tr>
+        {% for key in row.keys %}
+            <th>{{ key }}</th>
+        {% endfor %}
+            <th>gnucash</th>
+        </tr>
+        {% endif %}
+        <tr>
+            {% for val in row.values %}
+               <td>{{ val }}</td>
+            {% endfor %}
+           <td>
+               {{ form.customer }}
+               {{ form.amount }}
+               {{ form.date }}
+               {{ form.description }}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <input type="submit" value="Next">
+    </form>
+{% endif %}
+
+{% endblock %}
