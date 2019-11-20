@@ -239,7 +239,7 @@ class Book(GnuCashCoreClass):
 
     def InvoiceNextID(self, customer):
       ''' Return the next invoice ID.
-      This works but I'm not entirely happy with it.  FIX ME'''
+      '''
       from gnucash.gnucash_core_c import gncInvoiceNextID
       return gncInvoiceNextID(self.get_instance(),customer.GetEndOwner().get_instance()[1])
 
@@ -350,7 +350,7 @@ class GncPrice(GnuCashCoreClass):
       commodity with respect to another commodity.
       For example, a given price might represent the value of LNUX in USD on 2001-02-03.
 
-      See also http://code.gnucash.org/docs/head/group__Price.html
+      See also https://code.gnucash.org/docs/head/group__Price.html
     '''
     _new_instance = 'gnc_price_create'
 GncPrice.add_methods_with_prefix('gnc_price_')
@@ -369,7 +369,7 @@ class GncPriceDB(GnuCashCoreClass):
     Every QofBook contains a GNCPriceDB, accessible via gnc_pricedb_get_db.
 
     Definition in file gnc-pricedb.h.
-    See also http://code.gnucash.org/docs/head/gnc-pricedb_8h.html
+    See also https://code.gnucash.org/docs/head/gnc-pricedb_8h.html
     '''
 
 GncPriceDB.add_methods_with_prefix('gnc_pricedb_')
@@ -435,12 +435,22 @@ class Transaction(GnuCashCoreClass):
             gncInvoiceGetInvoiceFromTxn, Transaction )
 
 def decorate_monetary_list_returning_function(orig_function):
-    def new_function(self):
+    def new_function(self, *args):
+        """decorate function that returns list of gnc_monetary to return tuples of GncCommodity and GncNumeric
+
+        Args:
+            *args: Variable length argument list. Will get passed to orig_function
+
+        Returns:
+            array of tuples: (GncCommodity, GncNumeric)
+
+        ToDo:
+            Maybe this function should better reside in module function_class (?)"""
         # warning, item.commodity has been shown to be None
         # when the transaction doesn't have a currency
         return [(GncCommodity(instance=item.commodity),
                  GncNumeric(instance=item.value))
-                for item in orig_function(self) ]
+                for item in orig_function(self, *args) ]
     return new_function
 
 class Split(GnuCashCoreClass):
@@ -802,7 +812,8 @@ class QueryDatePredicate(GnuCashCoreClass):
     pass
 
 QueryDatePredicate.add_constructor_and_methods_with_prefix(
-    'qof_query_', 'date_predicate')
+    'qof_query_', 'date_predicate', exclude=["qof_query_date_predicate_get_date"])
+QueryDatePredicate.add_method('qof_query_date_predicate_get_date', 'get_date')
 
 class QueryGuidPredicate(GnuCashCoreClass):
     pass

@@ -143,7 +143,7 @@ class TaxTableEntry(GnuCashCoreClass):
 class Invoice(GnuCashCoreClass):
     def __init__(self, book=None, id=None, currency=None, owner=None,
                  date_opened=None, instance=None):
-        """Invoice Contstructor
+        """Invoice Constructor
 
         You must provide a book, id, currency and owner
         (Customer, Job, Employee, Vendor) or an existing swig proxy object
@@ -374,3 +374,6 @@ methods_return_instance(Entry, entry_dict)
 Entry.decorate_functions(
     decorate_to_return_instance_instead_of_owner,
     'GetBillTo' )
+
+from gnucash.gnucash_core import decorate_monetary_list_returning_function
+Entry.decorate_functions(decorate_monetary_list_returning_function, 'GetBalTaxValues')

@@ -24,7 +24,7 @@ class TestQueries(TestCase):
 
     def test_get_accounts(self):
         root = self.session.book.get_root_account()
-        self.assertEqual(len(queries.get_accounts(root)), 104)
+        self.assertEqual(len(queries.get_accounts(root)), 52)
 
     def test_get_account_ancestors(self):
         root = self.session.book.get_root_account()

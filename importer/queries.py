@@ -3,7 +3,7 @@ import re
 from datetime import datetime, date
 from cache_memoize import cache_memoize
 from django.conf import settings
-from gnucash import Account, Query
+from gnucash import Query
 from gnucash.gnucash_business import Customer
 from .convert import gnc_numeric_to_decimal
 from .models import AccountMap
@@ -11,17 +11,19 @@ from .models import AccountMap
 log = logging.getLogger(__name__)
 
 
-def get_accounts(root, account_list=[]):
+def get_accounts(root, account_list=None):
+    if account_list is None:
+        account_list = []
     for account in root.get_children():
-        if type(account) != Account:
-            account = Account(instance=account)
         if not account.get_children():
             account_list.append(account)
         get_accounts(account, account_list)
     return account_list
 
 
-def get_account_ancestors(account, account_list=[]):
+def get_account_ancestors(account, account_list=None):
+    if account_list is None:
+        account_list = []
     if not account.is_root():
         account_list.append(account)
         get_account_ancestors(account.get_parent(), account_list)
