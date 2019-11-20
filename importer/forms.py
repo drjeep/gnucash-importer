@@ -4,11 +4,18 @@ from django import forms
 from django.conf import settings
 from gnucash import Session
 from .models import AccountMap
-from .queries import get_accounts
+from . import queries
 
 FIELD_CHOICES = (
     ("", "---------"),
     ("account", "Account"),
+    ("amount", "Amount"),
+    ("date", "Date"),
+)
+
+INCOME_FIELD_CHOICES = (
+    ("", "---------"),
+    ("customer", "Customer"),
     ("amount", "Amount"),
     ("date", "Date"),
 )
@@ -21,8 +28,19 @@ def account_choices():
     choices = [("", "---------")]
     session = Session(settings.GNUCASH_FILE)
     root = session.book.get_root_account()
-    for ac in get_accounts(root):
+    for ac in queries.get_accounts(root):
         choices.append((ac.name, ac.name))
+    session.end()
+
+    return choices
+
+
+@cache_memoize(60)
+def customer_choices():
+    choices = [("", "---------")]
+    session = Session(settings.GNUCASH_FILE)
+    for c in queries.get_customers(session.book):
+        choices.append((c.GetID(), c.GetName()))
     session.end()
 
     return choices
@@ -41,8 +59,16 @@ class UploadForm(forms.Form):
     upload = forms.FileField()
 
 
+class IncomeUploadForm(forms.Form):
+    upload = forms.FileField()
+
+
 class FieldForm(forms.Form):
     field = forms.ChoiceField(choices=FIELD_CHOICES)
+
+
+class IncomeFieldForm(forms.Form):
+    field = forms.ChoiceField(choices=INCOME_FIELD_CHOICES)
 
 
 class AccountForm(forms.Form):
@@ -51,6 +77,13 @@ class AccountForm(forms.Form):
     date = PaymentDateField(widget=forms.HiddenInput)
     description = forms.CharField(widget=forms.HiddenInput)
     vat_incl = forms.BooleanField(required=False)
+
+
+class CustomerForm(forms.Form):
+    customer = forms.ChoiceField(choices=customer_choices())
+    amount = forms.DecimalField(widget=forms.HiddenInput)
+    date = PaymentDateField(widget=forms.HiddenInput)
+    description = forms.CharField(widget=forms.HiddenInput)
 
 
 class AccountMapForm(forms.ModelForm):

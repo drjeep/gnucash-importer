@@ -31,6 +31,10 @@ class TestQueries(TestCase):
         acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
         self.assertEqual(len(queries.get_account_ancestors(acc)), 3)
 
+    def test_get_customers(self):
+        customers = queries.get_customers(self.session.book)
+        self.assertEqual(len(customers), 1)
+
     def test_get_account_maps(self):
         self.assertEqual(
             queries.get_account_maps(),

@@ -1,7 +1,6 @@
 import csv
 import logging
 from io import TextIOWrapper
-from datetime import datetime
 from gnucash import Session
 from django.conf import settings
 from django.contrib import messages
@@ -11,8 +10,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from importer.commands import create_split_transaction
 from importer.forms import UploadForm, FieldForm, AccountForm
-from importer.queries import match_account
-from importer.convert import gnc_numeric_to_decimal
+from importer import queries
 
 log = logging.getLogger(__name__)
 
@@ -104,18 +102,7 @@ def map_accounts(request):
         else:
             bank = root.lookup_by_name(settings.GNUCASH_CARD_ACCOUNT)
 
-        check = []
-        for split in bank.GetSplitList():
-            trans = split.parent
-            try:
-                dte = datetime.fromtimestamp(trans.GetDate())
-            except TypeError:
-                dte = trans.GetDate()
-            amt = gnc_numeric_to_decimal(split.GetAmount())
-            if statement == "card":
-                amt = -amt
-            if dte.year > 2011:
-                check.append([dte, amt])
+        check = queries.get_duplicate_check_data(bank)
 
         try:
             ok = dup = 0
@@ -160,7 +147,9 @@ def map_accounts(request):
     else:
         initial = []
         for row in data:
-            account, vat_incl = match_account(row.get("account"), row.get("amount", 0))
+            account, vat_incl = queries.match_account(
+                row.get("account"), row.get("amount", 0)
+            )
             initial.append(
                 {
                     "account": account,
@@ -184,6 +173,7 @@ def map_accounts(request):
 
 
 def finish(request):
+    del request.session["statement"]
     del request.session["rows"]
     del request.session["map"]
 

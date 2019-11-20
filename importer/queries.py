@@ -1,8 +1,11 @@
 import logging
 import re
+from datetime import datetime, date
 from cache_memoize import cache_memoize
 from django.conf import settings
-from gnucash import Account
+from gnucash import Account, Query
+from gnucash.gnucash_business import Customer
+from .convert import gnc_numeric_to_decimal
 from .models import AccountMap
 
 log = logging.getLogger(__name__)
@@ -23,6 +26,21 @@ def get_account_ancestors(account, account_list=[]):
         account_list.append(account)
         get_account_ancestors(account.get_parent(), account_list)
     return account_list
+
+
+def get_customers(book):
+    customers = []
+    query = Query()
+    query.set_book(book)
+    query.search_for('gncCustomer')
+    for result in query.run():
+        customers.append(Customer(instance=result))
+    query.destroy()
+    return customers
+
+
+def get_customer_invoice(customer):
+    return None
 
 
 @cache_memoize(60)
@@ -55,3 +73,17 @@ def get_payment_refs(book):
         if ref:
             refs.add(ref)
     return refs
+
+
+def get_duplicate_check_data(account):
+    check = []
+    for split in account.GetSplitList():
+        trans = split.parent
+        try:
+            dte = datetime.fromtimestamp(trans.GetDate())
+        except TypeError:
+            dte = trans.GetDate()
+        amt = gnc_numeric_to_decimal(split.GetAmount())
+        if dte.year > date.today().year - 2:
+            check.append([dte, amt])
+    return check
