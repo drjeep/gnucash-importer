@@ -1,7 +1,7 @@
 import logging
 import re
 from cache_memoize import cache_memoize
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from django.conf import settings
 from fuzzywuzzy import fuzz
 from gnucash import Query, QOF_QUERY_AND, QOF_COMPARE_GTE
@@ -53,7 +53,7 @@ def get_customers(book):
     return customers
 
 
-def get_invoices(book, customer=None, days=700):
+def get_invoices(book, customer=None, days=None):
     invoices = []
     query = Query()
     query.set_book(book)
@@ -113,7 +113,7 @@ def match_customer(book, value):
             return customer.GetID()
 
         if number:
-            for invoice in get_invoices(book, customer):
+            for invoice in get_invoices(book, customer, settings.GNUCASH_HISTORY_DAYS):
                 s2 = invoice.GetID()
                 if number.zfill(6) == s2:
                     log.debug("Matched invoice %s to %s" % (s1, s2))
@@ -142,6 +142,6 @@ def get_duplicate_check_data(account):
         trans = split.parent
         dte = trans.GetDate()
         amt = gnc_numeric_to_decimal(split.GetAmount())
-        if dte.year > date.today().year - 2:
+        if dte > datetime.now() - timedelta(days=settings.GNUCASH_HISTORY_DAYS):
             check.append([dte, amt])
     return check
