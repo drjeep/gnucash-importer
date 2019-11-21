@@ -2,10 +2,10 @@ from django.conf.urls import url
 from .views import income, expenses
 
 urlpatterns = [
-    url(r"^$", expenses.upload, {}, "gnucash-import"),
-    url(r"^fields/$", expenses.map_fields, {}, "gnucash-map-fields"),
-    url(r"^accounts/$", expenses.map_accounts, {}, "gnucash-map-accounts"),
-    url(r"^finish/$", expenses.finish, {}, "gnucash-finish"),
+    url(r"^expenses/$", expenses.upload, {}, "expenses-import"),
+    url(r"^expenses/fields/$", expenses.map_fields, {}, "expenses-map-fields"),
+    url(r"^expenses/accounts/$", expenses.map_accounts, {}, "expenses-map-accounts"),
+    url(r"^expenses/finish/$", expenses.finish, {}, "expenses-finish"),
     url(r"^income/$", income.upload, {}, "income-import"),
     url(r"^income/fields/$", income.map_fields, {}, "income-map-fields"),
     url(r"^income/customers/$", income.map_customers, {}, "income-map-customers"),

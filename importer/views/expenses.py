@@ -29,7 +29,7 @@ def upload(request):
             request.session["rows"] = rows
             request.session["statement"] = form.cleaned_data["statement"]
 
-            return HttpResponseRedirect(reverse("gnucash-map-fields"))
+            return HttpResponseRedirect(reverse("expenses-map-fields"))
     else:
         form = UploadForm()
 
@@ -58,10 +58,10 @@ def map_fields(request):
                 ]
             ):
                 messages.error(request, "Please select account, amount and date fields")
-                return HttpResponseRedirect(reverse("gnucash-map-fields"))
+                return HttpResponseRedirect(reverse("expenses-map-fields"))
 
             request.session["map"] = map
-            return HttpResponseRedirect(reverse("gnucash-map-accounts"))
+            return HttpResponseRedirect(reverse("expenses-map-accounts"))
     else:
         formset = FieldFormSet()
 
@@ -143,7 +143,7 @@ def map_accounts(request):
         finally:
             session.end()
 
-        return HttpResponseRedirect(reverse("gnucash-finish"))
+        return HttpResponseRedirect(reverse("expenses-finish"))
     else:
         initial = []
         for row in data:
