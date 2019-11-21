@@ -98,5 +98,5 @@ def apply_payment(book, customer_id, amount, date):
 
     amount = gnc_numeric_from_decimal(amount)
     customer.ApplyPayment(
-        None, None, posted_acc, xfer_acc, amount, GncNumeric(1), date, "", ""
+        None, None, posted_acc, xfer_acc, amount, GncNumeric(1), date, "", "", True
     )
