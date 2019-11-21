@@ -24,24 +24,23 @@ STATEMENT_CHOICES = (("bank", "Bank"), ("card", "Credit Card"))
 
 
 @cache_memoize(60)
-def account_choices():
+def account_choices(book=None):
     choices = [("", "---------")]
-    session = Session(settings.GNUCASH_FILE)
-    for ac in queries.get_accounts(session.book.get_root_account()):
+    if not book:
+        session = Session(settings.GNUCASH_FILE)
+        book = session.book
+    for ac in queries.get_accounts(book.get_root_account()):
         choices.append((ac.name, ac.name))
-    session.end()
-
+    if "session" in locals():
+        session.end()
     return choices
 
 
 @cache_memoize(60)
-def customer_choices():
+def customer_choices(book):
     choices = [("", "---------")]
-    session = Session(settings.GNUCASH_FILE)
-    for c in queries.get_customers(session.book):
+    for c in queries.get_customers(book):
         choices.append((c.GetID(), c.GetName()))
-    session.end()
-
     return choices
 
 
@@ -71,18 +70,28 @@ class IncomeFieldForm(forms.Form):
 
 
 class AccountForm(forms.Form):
-    account = forms.ChoiceField(choices=account_choices())
+    account = forms.ChoiceField(choices=())
     amount = forms.DecimalField(widget=forms.HiddenInput)
     date = PaymentDateField(widget=forms.HiddenInput)
     description = forms.CharField(widget=forms.HiddenInput)
     vat_incl = forms.BooleanField(required=False)
 
+    def __init__(self, *args, **kwargs):
+        book = kwargs.pop("book", None)
+        super(AccountForm, self).__init__(*args, **kwargs)
+        self.fields["account"].choices = account_choices(book)
+
 
 class CustomerForm(forms.Form):
-    customer = forms.ChoiceField(choices=customer_choices())
+    customer = forms.ChoiceField(choices=())
     amount = forms.DecimalField(widget=forms.HiddenInput)
     date = PaymentDateField(widget=forms.HiddenInput)
     description = forms.CharField(widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        book = kwargs.pop("book")
+        super(CustomerForm, self).__init__(*args, **kwargs)
+        self.fields["customer"].choices = customer_choices(book)
 
 
 class AccountMapForm(forms.ModelForm):

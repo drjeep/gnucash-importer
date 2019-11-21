@@ -24,7 +24,7 @@ class TestQueries(TestCase):
 
     def test_get_accounts(self):
         self.assertEqual(
-            len(queries.get_accounts(self.session.book.get_root_account())), 52
+            len(queries.get_accounts(self.session.book.get_root_account())), 62
         )
 
     def test_get_account_ancestors(self):
@@ -40,7 +40,7 @@ class TestQueries(TestCase):
         self.assertEqual(len(queries.get_invoices(self.session.book)), 3)
 
     def test_get_invoices_customer(self):
-        customer = self.session.book.CustomerLookupByID("00001")
+        customer = self.session.book.CustomerLookupByID("000001")
         self.assertEqual(len(queries.get_invoices(self.session.book, customer)), 2)
 
     def test_get_account_maps(self):
@@ -56,16 +56,16 @@ class TestQueries(TestCase):
         self.assertEqual(queries.match_account("not found"), (None, False))
 
     def test_match_customer_name(self):
-        self.assertEqual(queries.match_customer(self.session.book, "Acme"), "00001")
+        self.assertEqual(queries.match_customer(self.session.book, "Acme"), "000001")
 
     def test_match_customer_invoice(self):
-        self.assertEqual(queries.match_customer(self.session.book, "00001"), "00001")
+        self.assertEqual(queries.match_customer(self.session.book, "00002"), "000001")
 
     def test_match_customer_not_found(self):
         self.assertEqual(queries.match_customer(self.session.book, "not found"), None)
 
     def test_get_payment_refs(self):
-        self.assertEqual(queries.get_payment_refs(self.session.book), {"00001"})
+        self.assertEqual(queries.get_payment_refs(self.session.book), {"000001"})
 
     def test_get_duplicate_check_data(self):
         pass

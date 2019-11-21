@@ -1,10 +1,11 @@
 import logging
 import re
 from cache_memoize import cache_memoize
-from datetime import date
+from datetime import date, timedelta
 from django.conf import settings
 from fuzzywuzzy import fuzz
-from gnucash import Query, QOF_QUERY_AND
+from gnucash import Query, QOF_QUERY_AND, QOF_COMPARE_GTE
+from gnucash.gnucash_core import QueryDatePredicate
 from gnucash.gnucash_business import Customer, Invoice
 from .convert import gnc_numeric_to_decimal
 from .models import AccountMap
@@ -52,13 +53,17 @@ def get_customers(book):
     return customers
 
 
-def get_invoices(book, customer=None):
+def get_invoices(book, customer=None, days=365):
     invoices = []
     query = Query()
     query.set_book(book)
     query.search_for("gncInvoice")
     if customer:
         query.add_guid_match(["owner", "guid"], customer.GetGUID(), QOF_QUERY_AND)
+    if days:
+        date_posted = date.today() - timedelta(days=days)
+        pred_data = QueryDatePredicate(QOF_COMPARE_GTE, 2, date_posted)
+        query.add_term(["date_posted"], pred_data, QOF_QUERY_AND)
     for result in query.run():
         invoices.append(Invoice(instance=result))
     return invoices
@@ -89,22 +94,29 @@ def match_customer(book, value):
     @todo: highlight score > 50
     @todo: optimize!
     """
-    if value:
-        s1 = value.upper()
-        for customer in get_customers(book):
-            s2 = customer.GetName()
-            score = fuzz.partial_ratio(s1, s2.upper())
-            if score > 80:
-                log.debug("Matched customer %s to %s... %d" % (s1, s2.upper(), score))
-                return customer.GetID()
+    if not value:
+        log.debug("No match value... aborting")
+        return None
 
+    match = re.search("(\d{4,})", value)
+    if match:
+        number = match.group()
+    else:
+        number = None
+    s1 = re.sub("\d{4,}", "", value).upper()
+
+    for customer in get_customers(book):
+        s2 = customer.GetName()
+        score = fuzz.partial_ratio(s1, s2.upper())
+        if score > 80:
+            log.debug("Matched customer %s to %s... %d" % (s1, s2.upper(), score))
+            return customer.GetID()
+
+        if number:
             for invoice in get_invoices(book, customer):
                 s2 = invoice.GetID()
-                score = fuzz.partial_ratio(s1, s2.upper())
-                if score > 80:
-                    log.debug(
-                        "Matched invoice %s to %s... %d" % (s1, s2.upper(), score)
-                    )
+                if number.zfill(6) == s2:
+                    log.debug("Matched invoice %s to %s" % (s1, s2))
                     return invoice.GetOwner().GetID()
 
     return None

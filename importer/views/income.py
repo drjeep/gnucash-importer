@@ -66,7 +66,7 @@ def map_fields(request):
         formset = IncomeFieldFormSet()
 
     return render(
-        request, "importer/map-fields.html", {"formset": formset, "rows": rows[:10]},
+        request, "importer/map-fields.html", {"formset": formset, "rows": rows[:10]}
     )
 
 

@@ -39,7 +39,7 @@ class TestCommands(TestCase):
 
     def test_pay_invoice(self):
         commands.pay_invoice(
-            self.session.book, "00002", Decimal("999.99"), date.today()
+            self.session.book, "000002", Decimal("99.99"), date.today()
         )
 
     def test_pay_invoice_exists(self):
@@ -47,8 +47,8 @@ class TestCommands(TestCase):
             PaymentExists,
             commands.pay_invoice,
             self.session.book,
-            "00001",
-            Decimal("9999.99"),
+            "000001",
+            Decimal("9.99"),
             date.today(),
         )
 
