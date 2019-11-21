@@ -37,10 +37,15 @@ def account_choices(book=None):
 
 
 @cache_memoize(60)
-def customer_choices(book):
+def customer_choices(book=None):
     choices = [("", "---------")]
+    if not book:
+        session = Session(settings.GNUCASH_FILE)
+        book = session.book
     for c in queries.get_customers(book):
         choices.append((c.GetID(), c.GetName()))
+    if "session" in locals():
+        session.end()
     return choices
 
 
@@ -89,7 +94,7 @@ class CustomerForm(forms.Form):
     description = forms.CharField(widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):
-        book = kwargs.pop("book")
+        book = kwargs.pop("book", None)
         super(CustomerForm, self).__init__(*args, **kwargs)
         self.fields["customer"].choices = customer_choices(book)
 

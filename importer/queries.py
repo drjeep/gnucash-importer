@@ -53,7 +53,7 @@ def get_customers(book):
     return customers
 
 
-def get_invoices(book, customer=None, days=365):
+def get_invoices(book, customer=None, days=700):
     invoices = []
     query = Query()
     query.set_book(book)
@@ -106,7 +106,7 @@ def match_customer(book, value):
     s1 = re.sub("\d{4,}", "", value).upper()
 
     for customer in get_customers(book):
-        s2 = customer.GetName()
+        s2 = customer.GetName() + customer.GetNotes()
         score = fuzz.partial_ratio(s1, s2.upper())
         if score > 80:
             log.debug("Matched customer %s to %s... %d" % (s1, s2.upper(), score))

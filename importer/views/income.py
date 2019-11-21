@@ -82,13 +82,13 @@ def map_customers(request):
         if not new_row["amount"].startswith("-"):
             data.append(new_row)
 
-    CustomerFormSet = formset_factory(CustomerForm, extra=0)
-
     session = Session(settings.GNUCASH_FILE)
     bank = queries.get_bank_account(session.book)
 
+    CustomerFormSet = formset_factory(CustomerForm, extra=0)
+
     if request.method == "POST":
-        formset = CustomerFormSet(request.POST)
+        formset = CustomerFormSet(request.POST, form_kwargs={"book": session.book})
 
         check = queries.get_duplicate_check_data(bank)
 
@@ -138,7 +138,9 @@ def map_customers(request):
                     "description": row.get("account"),
                 }
             )
-        formset = CustomerFormSet(initial=initial)
+        formset = CustomerFormSet(initial=initial, form_kwargs={"book": session.book})
+
+    session.end()
 
     return render(
         request,
