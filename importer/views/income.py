@@ -8,8 +8,9 @@ from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from importer.forms import IncomeUploadForm, IncomeFieldForm, CustomerForm
-from importer import commands, queries
+from ..exceptions import PaymentExists
+from ..forms import IncomeUploadForm, IncomeFieldForm, CustomerForm
+from .. import commands, queries
 
 log = logging.getLogger(__name__)
 
@@ -83,39 +84,31 @@ def map_customers(request):
             data.append(new_row)
 
     session = Session(settings.GNUCASH_FILE)
-    bank = queries.get_bank_account(session.book)
 
     CustomerFormSet = formset_factory(CustomerForm, extra=0)
 
     if request.method == "POST":
         formset = CustomerFormSet(request.POST, form_kwargs={"book": session.book})
-
-        check = queries.get_duplicate_check_data(bank)
-
         try:
             ok = dup = 0
             for form in formset.forms:
                 if form.is_valid():
                     clean = form.cleaned_data
-                    if [clean["date"], clean["amount"]] not in check:
+                    try:
                         commands.apply_payment(
-                            clean["customer"], clean["amount"], clean["date"]
+                            session.book,
+                            clean["customer"],
+                            clean["amount"],
+                            clean["date"],
                         )
                         ok += 1
-                    else:
-                        messages.warning(
-                            request,
-                            "Skipped %s %s %s"
-                            % (
-                                clean["date"].strftime("%Y-%m-%d"),
-                                clean["description"],
-                                clean["amount"],
-                            ),
-                        )
+                    except PaymentExists as e:
+                        messages.warning(request, e)
                         dup += 1
 
             session.save()
-            messages.info(request, "Successfully imported %s transactions" % ok)
+            if ok:
+                messages.info(request, "Successfully imported %s transactions" % ok)
             if dup:
                 messages.warning(request, "Skipped %s duplicate transactions" % dup)
 
@@ -135,7 +128,7 @@ def map_customers(request):
                     "customer": customer,
                     "amount": row.get("amount"),
                     "date": row.get("date"),
-                    "description": row.get("account"),
+                    "description": row.get("customer"),
                 }
             )
         formset = CustomerFormSet(initial=initial, form_kwargs={"book": session.book})
