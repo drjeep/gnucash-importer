@@ -1,7 +1,7 @@
 import logging
 import re
 from cache_memoize import cache_memoize
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from django.conf import settings
 from fuzzywuzzy import fuzz
 from gnucash import Query, QOF_QUERY_AND, QOF_COMPARE_GTE
@@ -140,8 +140,11 @@ def get_duplicate_check_data(account):
     check = []
     for split in account.GetSplitList():
         trans = split.parent
-        dte = trans.GetDate()
-        amt = gnc_numeric_to_decimal(split.GetAmount())
-        if dte > datetime.now() - timedelta(days=settings.GNUCASH_HISTORY_DAYS):
+        dte = trans.GetDate().date()
+        amt = split.GetAmount()
+        if account.name == settings.GNUCASH_CARD_ACCOUNT:
+            amt = amt.neg()
+        amt = gnc_numeric_to_decimal(amt)
+        if dte > date.today() - timedelta(days=settings.GNUCASH_HISTORY_DAYS):
             check.append([dte, amt])
     return check

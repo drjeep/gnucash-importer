@@ -35,6 +35,7 @@ class TestCommands(TestCase):
             date.today(),
             "ADSL",
             Decimal("539.00"),
+            False,
         )
 
     def test_pay_invoice(self):
@@ -64,5 +65,5 @@ class TestCommands(TestCase):
             self.session.book,
             "000001",
             Decimal("9.99"),
-            datetime(2019, 11, 21, 10, 59),
+            date(2019, 11, 21),
         )

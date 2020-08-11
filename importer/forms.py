@@ -52,7 +52,7 @@ def customer_choices(book=None):
 class PaymentDateField(forms.Field):
     def to_python(self, value):
         try:
-            return parser.parse(value)
+            return parser.parse(value).date()
         except ValueError as e:
             raise forms.ValidationError(e)
 

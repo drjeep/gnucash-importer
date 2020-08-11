@@ -103,6 +103,7 @@ def map_accounts(request):
             bank = root.lookup_by_name(settings.GNUCASH_CARD_ACCOUNT)
 
         check = queries.get_duplicate_check_data(bank)
+        log.debug(check)
 
         try:
             ok = dup = 0
