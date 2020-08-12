@@ -75,7 +75,7 @@ class Session(GnuCashCoreClass):
     """
 
     def __init__(self, book_uri=None, ignore_lock=False, is_new=False,
-                 force_new= False):
+                 force_new=False, instance=None):
         """A convenient constructor that allows you to specify a book URI,
         begin the session, and load the book.
 
@@ -95,13 +95,15 @@ class Session(GnuCashCoreClass):
         ignore_lock is passed to qof_session_begin's argument of the
         same name and is used to break an existing lock on a dataset.
 
+        instance argument can be passed if new Session is used as a
+        wrapper for an existing session instance
 
 
         This function can raise a GnuCashBackendException. If it does,
         you don't need to cleanup and call end() and destroy(), that is handled
         for you, and the exception is raised.
         """
-        GnuCashCoreClass.__init__(self)
+        GnuCashCoreClass.__init__(self, instance=instance)
         if book_uri is not None:
             try:
                 self.begin(book_uri, ignore_lock, is_new, force_new)
@@ -619,7 +621,7 @@ methods_return_instance(GncLot, gnclot_dict)
 
 # Transaction
 Transaction.add_methods_with_prefix('xaccTrans')
-Transaction.add_method('gncTransGetGUID', 'GetGUID');
+Transaction.add_method('gncTransGetGUID', 'GetGUID')
 
 Transaction.add_method('xaccTransGetDescription', 'GetDescription')
 Transaction.add_method('xaccTransDestroy', 'Destroy')
@@ -648,7 +650,7 @@ Transaction.decorate_functions(
 
 # Split
 Split.add_methods_with_prefix('xaccSplit')
-Split.add_method('gncSplitGetGUID', 'GetGUID');
+Split.add_method('gncSplitGetGUID', 'GetGUID')
 Split.add_method('xaccSplitDestroy', 'Destroy')
 
 split_dict =    {
@@ -677,7 +679,7 @@ Split.parent = property( Split.GetParent, Split.SetParent )
 # Account
 Account.add_methods_with_prefix('xaccAccount')
 Account.add_methods_with_prefix('gnc_account_')
-Account.add_method('gncAccountGetGUID', 'GetGUID');
+Account.add_method('gncAccountGetGUID', 'GetGUID')
 Account.add_method('xaccAccountGetPlaceholder', 'GetPlaceholder')
 
 account_dict =  {
