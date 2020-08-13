@@ -93,9 +93,9 @@ def map_accounts(request):
     AccountFormSet = formset_factory(AccountForm, extra=0)
 
     if request.method == "POST":
-        formset = AccountFormSet(request.POST)
-
         session = Session(settings.GNUCASH_FILE)
+        formset = AccountFormSet(request.POST, form_kwargs={'book': session.book})
+
         root = session.book.get_root_account()
         if statement == "bank":
             bank = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
@@ -122,8 +122,7 @@ def map_accounts(request):
                         )
                         ok += 1
                     else:
-                        messages.warning(
-                            request,
+                        log.debug(
                             "Skipped %s %s %s"
                             % (
                                 clean["date"].strftime("%Y-%m-%d"),
