@@ -103,7 +103,8 @@ def match_customer(book, value):
         number = match.group()
     else:
         number = None
-    s1 = re.sub("\d{4,}", "", value).upper()
+    # s1 = re.sub("\d{4,}", "", value).upper()
+    s1 = value.upper()
 
     for customer in get_customers(book):
         s2 = customer.GetName() + customer.GetNotes()

@@ -113,7 +113,8 @@ def map_customers(request):
                 messages.warning(request, "Skipped %s duplicate transactions" % dup)
 
         except Exception as e:
-            messages.error(request, e)
+            # messages.error(request, e)
+            raise
 
         finally:
             session.end()

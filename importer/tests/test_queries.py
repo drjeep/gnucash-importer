@@ -2,12 +2,13 @@ import os
 from datetime import date
 from decimal import Decimal
 from django.conf import settings
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from gnucash import Session
 from ..models import AccountMap
 from .. import queries
 
 
+@override_settings(GNUCASH_HISTORY_DAYS=3650)
 class TestQueries(TestCase):
     def setUp(self):
         self.session = Session(
