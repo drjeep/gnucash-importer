@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from decimal import Decimal
 from importer.commands import create_split_transaction
 from importer.forms import UploadForm, FieldForm, AccountForm
 from importer import queries
@@ -86,7 +87,7 @@ def map_accounts(request):
             new_row[field] = row[int(index)]
         # @todo: split into debit/credit views
         if statement == "card" or (
-            new_row["amount"].startswith("-") or "VIRTUALSTOCK" in new_row["account"]
+            new_row["amount"].startswith("-") or (Decimal(new_row["amount"]) > Decimal("100000.00"))
         ):
             data.append(new_row)
 

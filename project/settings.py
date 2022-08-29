@@ -138,7 +138,7 @@ LOGGING = {
     },
 }
 
-GNUCASH_FILE = os.getenv("GNUCASH_FILE")
+GNUCASH_FILE = os.getenv("GNUCASH_FILE", "/home/drjeep/Documents/gnucash/wickedbox.gnc")
 GNUCASH_CURRENCY = os.getenv("GNUCASH_CURRENCY", "ZAR")
 GNUCASH_BANK_ACCOUNT = os.getenv("GNUCASH_BANK_ACCOUNT", "Checking Account")
 GNUCASH_CARD_ACCOUNT = os.getenv("GNUCASH_CARD_ACCOUNT", "Credit Card")
@@ -147,4 +147,4 @@ GNUCASH_VAT_RATE = os.getenv("GNUCASH_VAT_RATE", "1.15")  # @todo: percentage
 GNUCASH_ACCOUNTS_RECEIVABLE = os.getenv(
     "GNUCASH_ACCOUNTS_RECEIVABLE", "Accounts Receivable"
 )
-GNUCASH_HISTORY_DAYS = int(os.getenv("GNUCASH_HISTORY_DAYS", 365))
+GNUCASH_HISTORY_DAYS = int(os.getenv("GNUCASH_HISTORY_DAYS", 600))

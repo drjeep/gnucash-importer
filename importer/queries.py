@@ -2,6 +2,7 @@ import logging
 import re
 from cache_memoize import cache_memoize
 from datetime import date, timedelta
+from decimal import Decimal
 from django.conf import settings
 from fuzzywuzzy import fuzz
 from gnucash import Query, QOF_QUERY_AND, QOF_COMPARE_GTE
@@ -75,6 +76,13 @@ def get_account_maps():
 
 
 def match_account(value, amount=None):
+    if amount:
+        if Decimal(amount.replace('-', '')) < Decimal('2.00'):
+            return 'Bank Service Charge', False
+
+        if 'virtualstock' in value.lower() and (Decimal(amount) < Decimal('0.00')):
+            return 'Bank Service Charge', False
+
     if value:
         lookup = []
         for match, account, vat_incl in get_account_maps():
