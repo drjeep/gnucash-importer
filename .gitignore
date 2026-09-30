@@ -2,6 +2,7 @@
 db.sqlite3
 staticfiles/
 venv/
+.venv/
 .idea/
 
 # Byte-compiled / optimized / DLL files
@@ -61,3 +62,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# GnuCash bindings come from the system install (linked into the venv)
+/gnucash

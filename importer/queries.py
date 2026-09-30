@@ -4,7 +4,7 @@ from cache_memoize import cache_memoize
 from datetime import date, timedelta
 from decimal import Decimal
 from django.conf import settings
-from fuzzywuzzy import fuzz
+from thefuzz import fuzz
 from gnucash import Query, QOF_QUERY_AND, QOF_COMPARE_GTE
 from gnucash.gnucash_core import QueryDatePredicate
 from gnucash.gnucash_business import Customer, Invoice
