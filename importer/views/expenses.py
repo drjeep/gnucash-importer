@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from importer.commands import create_split_transaction
 from importer.forms import UploadForm, FieldForm, AccountForm
 from importer import queries
@@ -85,10 +85,13 @@ def map_accounts(request):
         new_row = {}
         for index, field in map.items():
             new_row[field] = row[int(index)]
+        try:
+            amount = Decimal(new_row["amount"].strip())
+        except InvalidOperation:
+            log.debug("Skipped row with invalid amount: %s" % row)
+            continue
         # @todo: split into debit/credit views
-        if statement == "card" or (
-            new_row["amount"].startswith("-") or (Decimal(new_row["amount"]) > Decimal("100000.00"))
-        ):
+        if statement == "card" or amount < 0 or amount > Decimal("100000.00"):
             data.append(new_row)
 
     AccountFormSet = formset_factory(AccountForm, extra=0)
