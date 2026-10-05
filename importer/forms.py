@@ -30,7 +30,12 @@ def account_choices(book=None):
         session = Session(settings.GNUCASH_FILE)
         book = session.book
     for ac in queries.get_accounts(book.get_root_account()):
-        choices.append((ac.name, ac.name))
+        ancestors = queries.get_account_ancestors(ac)
+        if len(ancestors) > 1:
+            label = f"{ancestors[-1].name}:{ac.name}"
+        else:
+            label = ac.name
+        choices.append((ac.name, label))
     if "session" in locals():
         session.end()
     return choices
