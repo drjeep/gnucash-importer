@@ -106,7 +106,8 @@ def map_accounts(request):
         else:
             bank = root.lookup_by_name(settings.GNUCASH_CARD_ACCOUNT)
 
-        check = queries.get_duplicate_check_data(bank)
+        dates = [form.cleaned_data["date"] for form in formset.forms if form.is_valid()]
+        check = queries.get_duplicate_check_data(bank, min(dates)) if dates else []
         log.debug(check)
 
         try:

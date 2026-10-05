@@ -89,6 +89,9 @@ def map_customers(request):
 
     if request.method == "POST":
         formset = CustomerFormSet(request.POST, form_kwargs={"book": session.book})
+        dates = [form.cleaned_data["date"] for form in formset.forms if form.is_valid()]
+        bank = queries.get_bank_account(session.book)
+        check = queries.get_duplicate_check_data(bank, min(dates)) if dates else []
         try:
             ok = dup = 0
             for form in formset.forms:
@@ -100,6 +103,7 @@ def map_customers(request):
                             clean["customer"],
                             clean["amount"],
                             clean["date"],
+                            check=check,
                         )
                         ok += 1
                     except PaymentExists as e:

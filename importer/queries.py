@@ -144,8 +144,7 @@ def get_payment_refs(book):
     return refs
 
 
-@cache_memoize(60)
-def get_duplicate_check_data(account):
+def get_duplicate_check_data(account, since):
     check = []
     for split in account.GetSplitList():
         trans = split.parent
@@ -154,6 +153,6 @@ def get_duplicate_check_data(account):
         if account.name == settings.GNUCASH_CARD_ACCOUNT:
             amt = amt.neg()
         amt = gnc_numeric_to_decimal(amt)
-        if dte > date.today() - timedelta(days=settings.GNUCASH_HISTORY_DAYS):
+        if dte >= since:
             check.append([dte, amt])
     return check

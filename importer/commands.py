@@ -84,7 +84,7 @@ def pay_invoice(book, invoice_id, amount, date):
     invoice.ApplyPayment(None, bank, amount, GncNumeric(1), date, "", invoice_id)
 
 
-def apply_payment(book, customer_id, amount, date):
+def apply_payment(book, customer_id, amount, date, check=None):
     customer = book.CustomerLookupByID(customer_id)
     if not customer:
         raise CustomerNotFound(f"Could not find customer {customer_id}")
@@ -92,7 +92,8 @@ def apply_payment(book, customer_id, amount, date):
     posted_acc = queries.get_accounts_receivable(book)
     xfer_acc = queries.get_bank_account(book)
 
-    check = queries.get_duplicate_check_data(xfer_acc)
+    if check is None:
+        check = queries.get_duplicate_check_data(xfer_acc, date)
     if [date, amount] in check:
         raise PaymentExists(f"Payment {customer_id} already exists")
 
