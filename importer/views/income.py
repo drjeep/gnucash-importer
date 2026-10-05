@@ -108,9 +108,9 @@ def map_customers(request):
 
             session.save()
             if ok:
-                messages.info(request, "Successfully imported %s transactions" % ok)
+                messages.info(request, f"Successfully imported {ok} transactions")
             if dup:
-                messages.warning(request, "Skipped %s duplicate transactions" % dup)
+                messages.warning(request, f"Skipped {dup} duplicate transactions")
 
         except Exception as e:
             # messages.error(request, e)

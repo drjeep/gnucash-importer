@@ -88,7 +88,7 @@ def map_accounts(request):
         try:
             amount = Decimal(new_row["amount"].strip())
         except InvalidOperation:
-            log.debug("Skipped row with invalid amount: %s" % row)
+            log.debug("Skipped row with invalid amount: %s", row)
             continue
         # @todo: split into debit/credit views
         if statement == "card" or amount < 0 or amount > Decimal("100000.00"):
@@ -127,19 +127,17 @@ def map_accounts(request):
                         ok += 1
                     else:
                         log.debug(
-                            "Skipped %s %s %s"
-                            % (
-                                clean["date"].strftime("%Y-%m-%d"),
-                                clean["description"],
-                                clean["amount"],
-                            ),
+                            "Skipped %s %s %s",
+                            clean["date"].strftime("%Y-%m-%d"),
+                            clean["description"],
+                            clean["amount"],
                         )
                         dup += 1
 
             session.save()
-            messages.info(request, "Successfully imported %s transactions" % ok)
+            messages.info(request, f"Successfully imported {ok} transactions")
             if dup:
-                messages.warning(request, "Skipped %s duplicate transactions" % dup)
+                messages.warning(request, f"Skipped {dup} duplicate transactions")
 
         except Exception as e:
             messages.error(request, e)

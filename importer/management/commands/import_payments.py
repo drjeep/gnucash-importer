@@ -27,7 +27,7 @@ class Command(BaseCommand):
                     try:
                         pay_invoice(book, number, amount, date)
                     except PaymentExists as e:
-                        print("%s... skipping" % e)
+                        print(f"{e}... skipping")
             s.save()
         finally:
             s.end()
