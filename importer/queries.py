@@ -4,7 +4,7 @@ from cache_memoize import cache_memoize
 from datetime import date, timedelta
 from decimal import Decimal
 from django.conf import settings
-from fuzzywuzzy import fuzz
+from thefuzz import fuzz
 from gnucash import Query, QOF_QUERY_AND, QOF_COMPARE_GTE
 from gnucash.gnucash_core import QueryDatePredicate
 from gnucash.gnucash_business import Customer, Invoice
@@ -77,7 +77,10 @@ def get_account_maps():
 
 def match_account(value, amount=None):
     if amount:
-        if Decimal(amount.replace('-', '')) < Decimal('2.00'):
+        if Decimal(amount.replace('-', '')) < Decimal('5.00'):
+            return 'Bank Service Charge', False
+
+        if 'fee-teletransmission' in value.lower():
             return 'Bank Service Charge', False
 
         if 'virtualstock' in value.lower() and (Decimal(amount) < Decimal('0.00')):
@@ -87,10 +90,10 @@ def match_account(value, amount=None):
         lookup = []
         for match, account, vat_incl in get_account_maps():
             lookup.append((match, (account, vat_incl)))
-        value = re.sub("\s\s+", " ", value).upper()
+        value = re.sub(r"\s\s+", " ", value).upper()
         for k, v in lookup:
             if k.upper() in value:
-                log.debug("Matched %s to %s" % (value, v[0]))
+                log.debug("Matched %s to %s", value, v[0])
                 return v
 
     return None, False
@@ -106,26 +109,26 @@ def match_customer(book, value):
         log.debug("No match value... aborting")
         return None
 
-    match = re.search("(\d{4,})", value)
+    match = re.search(r"(\d{4,})", value)
     if match:
         number = match.group()
     else:
         number = None
-    # s1 = re.sub("\d{4,}", "", value).upper()
+    # s1 = re.sub(r"\d{4,}", "", value).upper()
     s1 = value.upper()
 
     for customer in get_customers(book):
         s2 = customer.GetName() + customer.GetNotes()
         score = fuzz.partial_ratio(s1, s2.upper())
         if score > 80:
-            log.debug("Matched customer %s to %s... %d" % (s1, s2.upper(), score))
+            log.debug("Matched customer %s to %s... %d", s1, s2.upper(), score)
             return customer.GetID()
 
         if number:
             for invoice in get_invoices(book, customer, settings.GNUCASH_HISTORY_DAYS):
                 s2 = invoice.GetID()
                 if number.zfill(6) == s2:
-                    log.debug("Matched invoice %s to %s" % (s1, s2))
+                    log.debug("Matched invoice %s to %s", s1, s2)
                     return invoice.GetOwner().GetID()
 
     return None
@@ -144,8 +147,7 @@ def get_payment_refs(book):
     return refs
 
 
-@cache_memoize(60)
-def get_duplicate_check_data(account):
+def get_duplicate_check_data(account, since):
     check = []
     for split in account.GetSplitList():
         trans = split.parent
@@ -154,6 +156,6 @@ def get_duplicate_check_data(account):
         if account.name == settings.GNUCASH_CARD_ACCOUNT:
             amt = amt.neg()
         amt = gnc_numeric_to_decimal(amt)
-        if dte > date.today() - timedelta(days=settings.GNUCASH_HISTORY_DAYS):
+        if dte >= since:
             check.append([dte, amt])
     return check

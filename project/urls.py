@@ -1,15 +1,15 @@
 from django.conf import settings
-from django.conf.urls import include, url
 from django.contrib import admin
 from django.http import HttpResponse
+from django.urls import include, path
 
 urlpatterns = [
-    url(r"^", include("importer.urls")),
-    url(r"^health/$", lambda x: HttpResponse()),
-    url(r"^admin/", include(admin.site.urls)),
+    path("", include("importer.urls")),
+    path("health/", lambda x: HttpResponse()),
+    path("admin/", admin.site.urls),
 ]
 
 if settings.DEBUG:
-    import debug_toolbar
+    from debug_toolbar.toolbar import debug_toolbar_urls
 
-    urlpatterns = [url(r"^__debug__/", include(debug_toolbar.urls))] + urlpatterns
+    urlpatterns = debug_toolbar_urls() + urlpatterns

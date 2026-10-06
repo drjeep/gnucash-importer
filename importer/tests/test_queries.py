@@ -75,6 +75,11 @@ class TestQueries(TestCase):
         root = self.session.book.get_root_account()
         acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
         self.assertEqual(
-            queries.get_duplicate_check_data(acc),
+            queries.get_duplicate_check_data(acc, date(2019, 11, 21)),
             [[date(2019, 11, 21), Decimal("9.99")]],
         )
+
+    def test_get_duplicate_check_data_since(self):
+        root = self.session.book.get_root_account()
+        acc = root.lookup_by_name(settings.GNUCASH_BANK_ACCOUNT)
+        self.assertEqual(queries.get_duplicate_check_data(acc, date(2019, 11, 22)), [])

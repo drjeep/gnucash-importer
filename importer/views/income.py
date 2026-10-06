@@ -4,7 +4,7 @@ from io import TextIOWrapper
 from gnucash import Session
 from django.conf import settings
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -89,6 +89,9 @@ def map_customers(request):
 
     if request.method == "POST":
         formset = CustomerFormSet(request.POST, form_kwargs={"book": session.book})
+        dates = [form.cleaned_data["date"] for form in formset.forms if form.is_valid()]
+        bank = queries.get_bank_account(session.book)
+        check = queries.get_duplicate_check_data(bank, min(dates)) if dates else []
         try:
             ok = dup = 0
             for form in formset.forms:
@@ -100,6 +103,7 @@ def map_customers(request):
                             clean["customer"],
                             clean["amount"],
                             clean["date"],
+                            check=check,
                         )
                         ok += 1
                     except PaymentExists as e:
@@ -108,9 +112,9 @@ def map_customers(request):
 
             session.save()
             if ok:
-                messages.info(request, "Successfully imported %s transactions" % ok)
+                messages.info(request, f"Successfully imported {ok} transactions")
             if dup:
-                messages.warning(request, "Skipped %s duplicate transactions" % dup)
+                messages.warning(request, f"Skipped {dup} duplicate transactions")
 
         except Exception as e:
             # messages.error(request, e)

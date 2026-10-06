@@ -1,13 +1,13 @@
-from django.conf.urls import url
+from django.urls import path
 from .views import income, expenses
 
 urlpatterns = [
-    url(r"^expenses/$", expenses.upload, {}, "expenses-import"),
-    url(r"^expenses/fields/$", expenses.map_fields, {}, "expenses-map-fields"),
-    url(r"^expenses/accounts/$", expenses.map_accounts, {}, "expenses-map-accounts"),
-    url(r"^expenses/finish/$", expenses.finish, {}, "expenses-finish"),
-    url(r"^income/$", income.upload, {}, "income-import"),
-    url(r"^income/fields/$", income.map_fields, {}, "income-map-fields"),
-    url(r"^income/customers/$", income.map_customers, {}, "income-map-customers"),
-    url(r"^income/finish/$", income.finish, {}, "income-finish"),
+    path("expenses/", expenses.upload, name="expenses-import"),
+    path("expenses/fields/", expenses.map_fields, name="expenses-map-fields"),
+    path("expenses/accounts/", expenses.map_accounts, name="expenses-map-accounts"),
+    path("expenses/finish/", expenses.finish, name="expenses-finish"),
+    path("income/", income.upload, name="income-import"),
+    path("income/fields/", income.map_fields, name="income-map-fields"),
+    path("income/customers/", income.map_customers, name="income-map-customers"),
+    path("income/finish/", income.finish, name="income-finish"),
 ]

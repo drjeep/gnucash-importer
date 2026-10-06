@@ -5,7 +5,7 @@ from django.conf import settings
 
 engines = {
     "sqlite": "django.db.backends.sqlite3",
-    "postgresql": "django.db.backends.postgresql_psycopg2",
+    "postgresql": "django.db.backends.postgresql",
     "mysql": "django.db.backends.mysql",
 }
 
@@ -24,6 +24,6 @@ def config():
         "NAME": name,
         "USER": os.getenv("DATABASE_USER"),
         "PASSWORD": os.getenv("DATABASE_PASSWORD"),
-        "HOST": os.getenv("{}_SERVICE_HOST".format(service_name)),
-        "PORT": os.getenv("{}_SERVICE_PORT".format(service_name)),
+        "HOST": os.getenv(f"{service_name}_SERVICE_HOST"),
+        "PORT": os.getenv(f"{service_name}_SERVICE_PORT"),
     }

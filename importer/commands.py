@@ -73,10 +73,10 @@ def create_split_transaction(
 def pay_invoice(book, invoice_id, amount, date):
     invoice = book.InvoiceLookupByID(invoice_id)
     if not invoice:
-        raise InvoiceNotFound("Could not find invoice %s" % invoice_id)
+        raise InvoiceNotFound(f"Could not find invoice {invoice_id}")
 
     if invoice_id in queries.get_payment_refs(book):
-        raise PaymentExists("Payment %s already exists" % invoice_id)
+        raise PaymentExists(f"Payment {invoice_id} already exists")
 
     bank = queries.get_bank_account(book)
     amount = gnc_numeric_from_decimal(amount)
@@ -84,19 +84,20 @@ def pay_invoice(book, invoice_id, amount, date):
     invoice.ApplyPayment(None, bank, amount, GncNumeric(1), date, "", invoice_id)
 
 
-def apply_payment(book, customer_id, amount, date):
+def apply_payment(book, customer_id, amount, date, check=None):
     customer = book.CustomerLookupByID(customer_id)
     if not customer:
-        raise CustomerNotFound("Could not find customer %s" % customer_id)
+        raise CustomerNotFound(f"Could not find customer {customer_id}")
 
     posted_acc = queries.get_accounts_receivable(book)
     xfer_acc = queries.get_bank_account(book)
 
-    check = queries.get_duplicate_check_data(xfer_acc)
+    if check is None:
+        check = queries.get_duplicate_check_data(xfer_acc, date)
     if [date, amount] in check:
-        raise PaymentExists("Payment %s already exists" % customer_id)
+        raise PaymentExists(f"Payment {customer_id} already exists")
 
     amount = gnc_numeric_from_decimal(amount)
     customer.ApplyPayment(
-        None, None, posted_acc, xfer_acc, amount, GncNumeric(1), date, "", "", True
+        None, [], posted_acc, xfer_acc, amount, GncNumeric(1), date, "", "", True
     )

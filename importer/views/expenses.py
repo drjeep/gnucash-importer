@@ -4,11 +4,11 @@ from io import TextIOWrapper
 from gnucash import Session
 from django.conf import settings
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from importer.commands import create_split_transaction
 from importer.forms import UploadForm, FieldForm, AccountForm
 from importer import queries
@@ -85,10 +85,13 @@ def map_accounts(request):
         new_row = {}
         for index, field in map.items():
             new_row[field] = row[int(index)]
+        try:
+            amount = Decimal(new_row["amount"].strip())
+        except InvalidOperation:
+            log.debug("Skipped row with invalid amount: %s", row)
+            continue
         # @todo: split into debit/credit views
-        if statement == "card" or (
-            new_row["amount"].startswith("-") or (Decimal(new_row["amount"]) > Decimal("100000.00"))
-        ):
+        if statement == "card" or amount < 0 or amount > Decimal("20000.00"):
             data.append(new_row)
 
     AccountFormSet = formset_factory(AccountForm, extra=0)
@@ -103,7 +106,8 @@ def map_accounts(request):
         else:
             bank = root.lookup_by_name(settings.GNUCASH_CARD_ACCOUNT)
 
-        check = queries.get_duplicate_check_data(bank)
+        dates = [form.cleaned_data["date"] for form in formset.forms if form.is_valid()]
+        check = queries.get_duplicate_check_data(bank, min(dates)) if dates else []
         log.debug(check)
 
         try:
@@ -124,19 +128,17 @@ def map_accounts(request):
                         ok += 1
                     else:
                         log.debug(
-                            "Skipped %s %s %s"
-                            % (
-                                clean["date"].strftime("%Y-%m-%d"),
-                                clean["description"],
-                                clean["amount"],
-                            ),
+                            "Skipped %s %s %s",
+                            clean["date"].strftime("%Y-%m-%d"),
+                            clean["description"],
+                            clean["amount"],
                         )
                         dup += 1
 
             session.save()
-            messages.info(request, "Successfully imported %s transactions" % ok)
+            messages.info(request, f"Successfully imported {ok} transactions")
             if dup:
-                messages.warning(request, "Skipped %s duplicate transactions" % dup)
+                messages.warning(request, f"Skipped {dup} duplicate transactions")
 
         except Exception as e:
             messages.error(request, e)
