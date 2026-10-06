@@ -91,7 +91,7 @@ def map_accounts(request):
             log.debug("Skipped row with invalid amount: %s", row)
             continue
         # @todo: split into debit/credit views
-        if statement == "card" or amount < 0 or amount > Decimal("100000.00"):
+        if statement == "card" or amount < 0 or amount > Decimal("20000.00"):
             data.append(new_row)
 
     AccountFormSet = formset_factory(AccountForm, extra=0)

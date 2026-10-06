@@ -77,7 +77,10 @@ def get_account_maps():
 
 def match_account(value, amount=None):
     if amount:
-        if Decimal(amount.replace('-', '')) < Decimal('2.00'):
+        if Decimal(amount.replace('-', '')) < Decimal('5.00'):
+            return 'Bank Service Charge', False
+
+        if 'fee-teletransmission' in value.lower():
             return 'Bank Service Charge', False
 
         if 'virtualstock' in value.lower() and (Decimal(amount) < Decimal('0.00')):
